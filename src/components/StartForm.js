@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { TextField, Select, MenuItem, Button, FormControl, InputLabel, FormHelperText, Box } from '@mui/material';
+import { useNavigate } from "react-router-dom";
 import banner from '../testa-uzdevums.jpg';
-import './StartForm.css';
+import './style.css';
 
 const StartForm = () => {
+  const navigate = useNavigate();
+
+  const [tests, setTests] = useState([]);
+
   const [name, setName] = useState('');
   const [selectedTest, setSelectedTest] = useState('');
   const [error, setError] = useState(' ');
@@ -12,16 +17,47 @@ const StartForm = () => {
     document.body.style.backgroundColor = '#3d1a6d';
   }, []);
 
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const response = await fetch("/api/gettests.php"); // Update with your actual API endpoint
+        if (!response.ok) {
+          throw new Error("Nav izdevies ielādēt testus");
+        }
+        const data = await response.json();
+        setTests(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchTests();
+  }, []);
+
   const handleSubmit = () => {
     if (!name || !selectedTest) {
-      setError('Both fields are required');
+      setError('Ir jāaizpilda abi lauki');
       return;
     }
     setError(' ');
-    alert(`Proceeding with the test: ${selectedTest}`);
-    document.getElementById('name').value = name;
-    document.getElementById('test').value = selectedTest;
-    document.getElementById('submit-form').submit();
+
+    fetch('/api/starttest.php', {
+      method: 'POST', // Specify the request method
+      headers: {
+          'Content-Type': 'application/json' // Set the request headers
+      },
+      body: JSON.stringify({ name: name, test: selectedTest }) // Convert data to JSON format
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Nevar uzsākt testu');
+        }
+        return response.json(); // Parse JSON response
+    })
+    .then(data => {
+      navigate("/test");
+    })
+    .catch(error => console.error('Error:', error));
   };
 
   return (
@@ -50,7 +86,7 @@ const StartForm = () => {
       </Box>
 
       <TextField
-        label="Name"
+        label="Ievadi savu vārdu"
         variant="outlined"
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -89,28 +125,27 @@ const StartForm = () => {
             }
           }}
         >
-          Test
+          Izvēlies testu
         </InputLabel>
+        
         <Select
           value={selectedTest}
           onChange={(e) => setSelectedTest(e.target.value)}
           label="Test"
           sx={{ backgroundColor: '#fff', color: '#000', borderRadius: '4px', '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
         >
-          <MenuItem value="Test1" sx={{ color: '#000' }}>Test 1</MenuItem>
-          <MenuItem value="Test2" sx={{ color: '#000' }}>Test 2</MenuItem>
-          <MenuItem value="Test3" sx={{ color: '#000' }}>Test 3</MenuItem>
+          {tests.map((test, index) => (
+            <MenuItem key={index} value={test.id} sx={{ color: '#000' }}>
+              {test.name}
+            </MenuItem>
+          ))}
         </Select>
         <FormHelperText sx={{ color: '#fff' }}>{error}</FormHelperText>
       </FormControl>
 
       <Button variant="contained" onClick={handleSubmit} fullWidth>
-        Proceed with Test
+        Sākt testu
       </Button>
-      <form id="submit-form" class="hidden" action="/starttest.php" method="post">
-        <input id="name" type="hidden" name="name" value="noname" />
-        <input id="test" type="hidden" name="test" value="impossible" />
-      </form>
     </Box>
   );
 };
