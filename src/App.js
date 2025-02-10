@@ -4,18 +4,23 @@ import { Button, Container } from "@mui/material";
 import './App.css';
 import StartForm from './components/StartForm';
 import TestForm from "./components/TestForm";
+import ResultPage from "./components/ResultPage";
 
+/**
+ * Galvenais React components, kas nodrošina navigāciju pa skatiem
+ */
 function App() {
   return (
     <Router>
       <Container>
         <Button component={Link} to="/" variant="contained" color="primary">
-          Home
+          Uz sākumu
         </Button>
 
         <Routes>
           <Route path="/" element={<StartForm />} />
           <Route path="/test" element={<TestForm />} />
+          <Route path="/result" element={<ResultPage />} />
         </Routes>
       </Container>
     </Router>

@@ -2,21 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Select, MenuItem, Button, FormControl, InputLabel, FormHelperText, Box } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import banner from '../testa-uzdevums.jpg';
-import './style.css';
 
+/**
+ * Testa izvēles skats
+ */
 const StartForm = () => {
   const navigate = useNavigate();
 
+  /**
+   * Masīvs ar ielādētiem testiem no servera
+   */
   const [tests, setTests] = useState([]);
 
+  /**
+   * Interfeisa elementi
+   */
   const [name, setName] = useState('');
   const [selectedTest, setSelectedTest] = useState('');
   const [error, setError] = useState(' ');
 
+  /**
+   * Debesszīlas pogas labi izskatas uz violeta fona
+   */
   useEffect(() => {
     document.body.style.backgroundColor = '#3d1a6d';
   }, []);
 
+  /**
+   * Ieladē no servera testu sarakstu izvēlnei
+   */
   useEffect(() => {
     const fetchTests = async () => {
       try {
@@ -34,6 +48,12 @@ const StartForm = () => {
     fetchTests();
   }, []);
 
+  /**
+   * Ja abi lauki ir aizpildīti, automātiski izveido lietotāju, ja šāda vārda vēl nav datubāzē un uzsāk testu,
+   * pārējot uz testa skatu
+   * 
+   * Error ir atstarpe, lai FormasHelperis saglabātu pastāvīgu augstumu, kad kļūdu nav
+   */
   const handleSubmit = () => {
     if (!name || !selectedTest) {
       setError('Ir jāaizpilda abi lauki');
@@ -42,17 +62,17 @@ const StartForm = () => {
     setError(' ');
 
     fetch('/api/starttest.php', {
-      method: 'POST', // Specify the request method
+      method: 'POST',
       headers: {
-          'Content-Type': 'application/json' // Set the request headers
+          'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ name: name, test: selectedTest }) // Convert data to JSON format
+      body: JSON.stringify({ name: name, test: selectedTest })
     })
     .then(response => {
         if (!response.ok) {
             throw new Error('Nevar uzsākt testu');
         }
-        return response.json(); // Parse JSON response
+        return response.json();
     })
     .then(data => {
       navigate("/test");
